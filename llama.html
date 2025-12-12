@@ -65,6 +65,8 @@
         .llama-image {
             width: 100%;
             height: auto;
+            max-height: 500px;
+            object-fit: contain;
             display: none;
             border-radius: 15px;
             transition: opacity 0.3s ease;
@@ -153,6 +155,13 @@
             font-size: 0.9rem;
         }
 
+        .image-source {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #999;
+            font-style: italic;
+        }
+
         /* Responsive design */
         @media (max-width: 768px) {
             .container {
@@ -204,7 +213,8 @@
         </div>
 
         <div class="info">
-            <p>Each llama is randomly selected to bring you joy! Click "New Llama" for another one, or refresh the page.</p>
+            <p>Each llama is randomly selected from our curated collection to bring you joy! Click "New Llama" for another one, or refresh the page.</p>
+            <div class="image-source" id="imageSource"></div>
         </div>
     </div>
 
@@ -217,8 +227,53 @@
                 this.errorMessage = document.getElementById('errorMessage');
                 this.newLlamaBtn = document.getElementById('newLlamaBtn');
                 this.refreshBtn = document.getElementById('refreshBtn');
+                this.imageSource = document.getElementById('imageSource');
                 
-                this.currentImageIndex = 0;
+                // Curated collection of actual llama images from reliable sources
+                this.llamaImages = [
+                    {
+                        url: 'https://images.unsplash.com/photo-1596385752481-ad1b8b5351e4?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'White fluffy llama portrait'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1551191784-a0ce0ee5b9e2?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Brown llama in field'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1508921340878-ba53e1f016ec?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Llama with long neck looking at camera'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1616190101862-b9c13eccabeb?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Cute llama close-up'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1601758261049-55d060e1159a?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Llama eating grass'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1593376853899-fbb47fe19c2d?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Group of llamas in mountains'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1614095264426-1e958304fd47?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Llama with colorful decorations'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1591695437530-c2c8d5056fb4?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Llama in natural habitat'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1570018144715-43110363d70a?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Woolly llama portrait'
+                    },
+                    {
+                        url: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=500&h=400&fit=crop&crop=faces',
+                        alt: 'Llama family in field'
+                    }
+                ];
+                
+                this.usedImages = new Set();
                 this.setupEventListeners();
                 this.loadRandomLlama();
             }
@@ -237,28 +292,39 @@
                 this.disableButtons();
 
                 try {
-                    // Using Picsum Photos API with llama-themed seed for consistent but varied images
-                    // We'll use different seeds to get different images
-                    const seeds = [
-                        'llama1', 'llama2', 'llama3', 'llama4', 'llama5',
-                        'alpaca1', 'alpaca2', 'alpaca3', 'fluffy1', 'fluffy2',
-                        'cute1', 'cute2', 'cute3', 'animal1', 'animal2',
-                        'nature1', 'nature2', 'field1', 'field2', 'mountain1'
-                    ];
+                    // Reset used images if we've shown them all
+                    if (this.usedImages.size >= this.llamaImages.length) {
+                        this.usedImages.clear();
+                    }
                     
-                    // Add some randomization with timestamps and random numbers
-                    const randomSeed = seeds[Math.floor(Math.random() * seeds.length)] + 
-                                     Date.now() + 
-                                     Math.floor(Math.random() * 1000);
+                    // Get available images (not recently shown)
+                    const availableImages = this.llamaImages.filter((_, index) => 
+                        !this.usedImages.has(index)
+                    );
                     
-                    // Use Picsum with random dimensions for variety
-                    const width = 500 + Math.floor(Math.random() * 200); // 500-700px
-                    const height = 400 + Math.floor(Math.random() * 200); // 400-600px
+                    // If no available images, use all images
+                    const imagePool = availableImages.length > 0 ? availableImages : this.llamaImages;
                     
-                    const imageUrl = `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
+                    // Select random image from available pool
+                    const randomIndex = Math.floor(Math.random() * imagePool.length);
+                    const selectedImage = imagePool[randomIndex];
+                    
+                    // Find the original index to track usage
+                    const originalIndex = this.llamaImages.findIndex(img => img.url === selectedImage.url);
+                    this.usedImages.add(originalIndex);
+                    
+                    // Add cache busting parameter to ensure fresh load
+                    const cacheBuster = Date.now();
+                    const imageUrl = `${selectedImage.url}&cacheBuster=${cacheBuster}`;
+                    
+                    // Update alt text
+                    this.llamaImage.alt = selectedImage.alt;
                     
                     // Preload the image to handle loading states properly
                     await this.preloadImage(imageUrl);
+                    
+                    // Update image source info
+                    this.updateImageSource(selectedImage.alt);
                     
                 } catch (error) {
                     console.error('Error loading llama image:', error);
@@ -292,21 +358,35 @@
                 this.showError();
                 this.enableButtons();
                 
-                // Try loading a fallback image after a brief delay
+                // Try loading a different llama after a brief delay
                 setTimeout(() => {
-                    this.loadFallbackImage();
+                    this.loadFallbackLlama();
                 }, 1000);
             }
 
-            loadFallbackImage() {
-                // Fallback to a more reliable source
-                const fallbackUrl = `https://picsum.photos/500/400?random=${Math.random()}`;
-                this.llamaImage.src = fallbackUrl;
+            loadFallbackLlama() {
+                // Remove the failed image from the current session
+                const currentSrc = this.llamaImage.src;
+                const failedIndex = this.llamaImages.findIndex(img => 
+                    currentSrc.includes(img.url.split('?')[0])
+                );
+                
+                if (failedIndex !== -1) {
+                    this.usedImages.add(failedIndex);
+                }
+                
+                // Try loading a different llama image
+                this.loadRandomLlama();
+            }
+
+            updateImageSource(altText) {
+                this.imageSource.textContent = `Showing: ${altText}`;
             }
 
             showLoading() {
                 this.loadingPlaceholder.style.display = 'flex';
                 this.llamaImage.classList.remove('loaded');
+                this.imageSource.textContent = '';
             }
 
             hideLoading() {
@@ -334,17 +414,15 @@
 
         // Initialize the gallery when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new LlamaGallery();
+            window.llamaGallery = new LlamaGallery();
         });
 
         // Also load a new llama when the page becomes visible (handles refresh case)
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
+            if (!document.hidden && window.llamaGallery) {
                 // Small delay to ensure the page is fully loaded
                 setTimeout(() => {
-                    if (window.llamaGallery) {
-                        window.llamaGallery.loadRandomLlama();
-                    }
+                    window.llamaGallery.loadRandomLlama();
                 }, 100);
             }
         });
