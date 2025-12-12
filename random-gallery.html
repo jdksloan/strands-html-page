@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Image Gallery</title>
+    <link rel="stylesheet" href="css/random-gallery.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Random Image Gallery</h1>
+            <p class="subtitle">Discover a new beautiful image every time!</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <strong>Oops!</strong> Failed to load the image. Please try again or refresh the page.
+        </div>
+
+        <div class="image-container" id="imageContainer">
+            <div class="loading-placeholder" id="loadingPlaceholder">
+                <div class="spinner"></div>
+                <p>Loading a beautiful image...</p>
+            </div>
+            <img class="random-image" id="randomImage" alt="Random image">
+        </div>
+
+        <div class="controls">
+            <button id="newImageBtn">🔄 New Image</button>
+            <button id="refreshBtn">↻ Refresh Page</button>
+        </div>
+
+        <div class="info">
+            <p>Each image is randomly selected from high-quality sources to bring you inspiration! Click "New Image" for another one, or refresh the page.</p>
+            <div class="image-source" id="imageSource"></div>
+        </div>
+    </div>
+
+    <script src="js/random-gallery.js"></script>
+</body>
+</html>
