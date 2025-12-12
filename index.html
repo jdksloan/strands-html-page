@@ -52,12 +52,42 @@
             margin: 0 auto;
             padding: 20px;
         }
+
+        .navigation {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 0 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <div class="content">
         <h1>Hello World</h1>
         <p>This is a basic HTML page displaying "Hello World".</p>
+        
+        <div class="navigation">
+            <h3>🎉 New Feature Available!</h3>
+            <p>Check out our new random llama gallery:</p>
+            <a href="llama.html" class="nav-link">🦙 Visit Llama Gallery</a>
+        </div>
         
         <div class="controls">
             <button id="showSpinner">Show Spinner</button>
