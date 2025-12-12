@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Llama Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f8f9fa;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .llama-image {
+            width: 100%;
+            height: auto;
+            display: none;
+            border-radius: 15px;
+            transition: opacity 0.3s ease;
+        }
+
+        .llama-image.loaded {
+            display: block;
+        }
+
+        .loading-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            border: 4px solid #e3f2fd;
+            border-top: 4px solid #2196f3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            display: none;
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #fadbd8;
+            margin-bottom: 20px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦙 Random Llama Gallery</h1>
+            <p class="subtitle">Discover a new adorable llama every time!</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <strong>Oops!</strong> Failed to load the llama image. Please try again.
+        </div>
+
+        <div class="image-container" id="imageContainer">
+            <div class="loading-placeholder" id="loadingPlaceholder">
+                <div class="spinner"></div>
+                <p>Loading a beautiful llama...</p>
+            </div>
+            <img class="llama-image" id="llamaImage" alt="Random llama image">
+        </div>
+
+        <div class="controls">
+            <button id="newLlamaBtn">🔄 New Llama</button>
+            <button id="refreshBtn">↻ Refresh Page</button>
+        </div>
+
+        <div class="info">
+            <p>Each llama is randomly selected to bring you joy! Click "New Llama" for another one, or refresh the page.</p>
+        </div>
+    </div>
+
+    <script>
+        class LlamaGallery {
+            constructor() {
+                this.imageContainer = document.getElementById('imageContainer');
+                this.llamaImage = document.getElementById('llamaImage');
+                this.loadingPlaceholder = document.getElementById('loadingPlaceholder');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.newLlamaBtn = document.getElementById('newLlamaBtn');
+                this.refreshBtn = document.getElementById('refreshBtn');
+                
+                this.currentImageIndex = 0;
+                this.setupEventListeners();
+                this.loadRandomLlama();
+            }
+
+            setupEventListeners() {
+                this.newLlamaBtn.addEventListener('click', () => this.loadRandomLlama());
+                this.refreshBtn.addEventListener('click', () => window.location.reload());
+                
+                this.llamaImage.addEventListener('load', () => this.onImageLoad());
+                this.llamaImage.addEventListener('error', () => this.onImageError());
+            }
+
+            async loadRandomLlama() {
+                this.showLoading();
+                this.hideError();
+                this.disableButtons();
+
+                try {
+                    // Using Picsum Photos API with llama-themed seed for consistent but varied images
+                    // We'll use different seeds to get different images
+                    const seeds = [
+                        'llama1', 'llama2', 'llama3', 'llama4', 'llama5',
+                        'alpaca1', 'alpaca2', 'alpaca3', 'fluffy1', 'fluffy2',
+                        'cute1', 'cute2', 'cute3', 'animal1', 'animal2',
+                        'nature1', 'nature2', 'field1', 'field2', 'mountain1'
+                    ];
+                    
+                    // Add some randomization with timestamps and random numbers
+                    const randomSeed = seeds[Math.floor(Math.random() * seeds.length)] + 
+                                     Date.now() + 
+                                     Math.floor(Math.random() * 1000);
+                    
+                    // Use Picsum with random dimensions for variety
+                    const width = 500 + Math.floor(Math.random() * 200); // 500-700px
+                    const height = 400 + Math.floor(Math.random() * 200); // 400-600px
+                    
+                    const imageUrl = `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
+                    
+                    // Preload the image to handle loading states properly
+                    await this.preloadImage(imageUrl);
+                    
+                } catch (error) {
+                    console.error('Error loading llama image:', error);
+                    this.onImageError();
+                }
+            }
+
+            preloadImage(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.llamaImage.src = url;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image'));
+                    };
+                    img.src = url;
+                });
+            }
+
+            onImageLoad() {
+                this.hideLoading();
+                this.hideError();
+                this.llamaImage.classList.add('loaded');
+                this.enableButtons();
+            }
+
+            onImageError() {
+                this.hideLoading();
+                this.showError();
+                this.enableButtons();
+                
+                // Try loading a fallback image after a brief delay
+                setTimeout(() => {
+                    this.loadFallbackImage();
+                }, 1000);
+            }
+
+            loadFallbackImage() {
+                // Fallback to a more reliable source
+                const fallbackUrl = `https://picsum.photos/500/400?random=${Math.random()}`;
+                this.llamaImage.src = fallbackUrl;
+            }
+
+            showLoading() {
+                this.loadingPlaceholder.style.display = 'flex';
+                this.llamaImage.classList.remove('loaded');
+            }
+
+            hideLoading() {
+                this.loadingPlaceholder.style.display = 'none';
+            }
+
+            showError() {
+                this.errorMessage.classList.add('show');
+            }
+
+            hideError() {
+                this.errorMessage.classList.remove('show');
+            }
+
+            disableButtons() {
+                this.newLlamaBtn.disabled = true;
+                this.refreshBtn.disabled = true;
+            }
+
+            enableButtons() {
+                this.newLlamaBtn.disabled = false;
+                this.refreshBtn.disabled = false;
+            }
+        }
+
+        // Initialize the gallery when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new LlamaGallery();
+        });
+
+        // Also load a new llama when the page becomes visible (handles refresh case)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Small delay to ensure the page is fully loaded
+                setTimeout(() => {
+                    if (window.llamaGallery) {
+                        window.llamaGallery.loadRandomLlama();
+                    }
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>
